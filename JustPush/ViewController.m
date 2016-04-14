@@ -11,6 +11,7 @@
 
 #define Push_Developer  "gateway.sandbox.push.apple.com"
 #define Push_Production  "gateway.push.apple.com"
+#define NWSSL_HANDSHAKE_TRY_COUNT 1 << 26
 
 @interface ViewController ()
 {
@@ -33,7 +34,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
+    
     self.payload.stringValue = @"{\"aps\":{\"alert\":\"This is some fancy message.\",\"badge\":1,\"sound\": \"default\"}}";
     _connectResult = -50;
     _closeResult = -50;
@@ -47,87 +48,25 @@
 
 - (void)setRepresentedObject:(id)representedObject {
     [super setRepresentedObject:representedObject];
-
+    
     // Update the view, if already loaded.
 }
 
-// connect - step 1
-- (void)setPeerServer
-{
-    // Establish connection to server.
-    PeerSpec peer;
-    
-    //测试开发环境
-    if (self.devSelect == self.pushMode.selectedCell) {
-        _connectResult = MakeServerConnection(Push_Developer, 2195, 1, &socket, &peer);
-        NSLog(@"MakeServerConnection(): %d", _connectResult);
-    }
-    
-    //生产正式环境
-    if (self.productSelect == self.pushMode.selectedCell) {
-        _connectResult = MakeServerConnection(Push_Production, 2195, 1, &socket, &peer);
-        NSLog(@"MakeServerConnection(): %d", _connectResult);
-    }
-}
+#pragma mark - Connect Action
 
-// connect - step 2
-- (void)configSSLContext
+- (BOOL)handshakeSSL
 {
-    // Create new SSL context.
-    _connectResult = SSLNewContext(false, &context);
-    
-    // Set callback functions for SSL context.
-    _connectResult = SSLSetIOFuncs(context, SocketRead, SocketWrite);
-    
-    // Set SSL context connection.
-    _connectResult = SSLSetConnection(context, socket);
-}
-
-// connect - step 4
-- (void)setPeerDomain
-{
-    //测试环境
-    if (self.devSelect == self.pushMode.selectedCell) {
-        // Set server domain name.
-        _connectResult = SSLSetPeerDomainName(context, Push_Developer, 30);
+    OSStatus status = errSSLWouldBlock;
+    for (NSUInteger i = 0; i < NWSSL_HANDSHAKE_TRY_COUNT && status == errSSLWouldBlock; i++) {
+        NSLog(@"try handshake %ld",i);
+        status = SSLHandshake(context);
     }
     
-    //生产正式环境
-    if (self.productSelect == self.pushMode.selectedCell) {
-        _connectResult = SSLSetPeerDomainName(context,Push_Production, 22);
+    switch (status) {
+        case errSecSuccess: return YES;
     }
     
-    // Open keychain.
-    _connectResult = SecKeychainCopyDefault(&keychain);
-}
-
-// conect - step 4
-- (void)configSSLCer
-{
-    // Create certificate.
-    if (self.devSelect == self.pushMode.selectedCell) {
-        _cerFile = self.cerPath.stringValue;
-    }
-    
-    //生产正式环境
-    if (self.productSelect == self.pushMode.selectedCell) {
-        _cerFile = self.cerPath.stringValue;
-    }
-    
-    NSData *certificateData = [NSData dataWithContentsOfFile:_cerFile];
-    
-    certificate = SecCertificateCreateWithData(kCFAllocatorDefault, (__bridge CFDataRef)certificateData);
-    if (certificate == NULL){
-        [self showMessage:@"读取证书失败!"];
-    }
-    
-    // Create identity.
-    _connectResult = SecIdentityCreateWithCertificate(keychain, certificate, &identity);
-    
-    // Set client certificate.
-    CFArrayRef certificates = CFArrayCreate(NULL, (const void **)&identity, 1, NULL);
-    _connectResult = SSLSetCertificate(context, certificates);
-    CFRelease(certificates);
+    return NO;
 }
 
 - (IBAction)connect:(id)sender
@@ -140,21 +79,19 @@
         return;
     }
     
-    [self setPeerServer];
+    [self connectSocket];
     
-    [self configSSLContext];
+    [self connectSSL];
     
-    [self setPeerDomain];
+    //[self openKeychain];
     
     [self configSSLCer];
     
-    // SSL handshake.
-    do {
-        _connectResult = SSLHandshake(context);
-        NSLog(@"SSLHandshake(): %d", _connectResult);
-    } while(_connectResult == errSSLWouldBlock);
-    
-    NSLog(@"end connect ...");
+    if ([self handshakeSSL]) {
+        NSLog(@"connect success ...");
+    } else {
+        NSLog(@"connect failed ...");
+    }
 }
 
 #pragma mark - Push Action
@@ -174,7 +111,7 @@
         [self showMessage:@"token 不能为空"];
         return;
     }
-
+    
     // Convert string into device token data.
     NSMutableData *deviceToken = [NSMutableData data];
     unsigned value;
@@ -222,6 +159,71 @@
     NSLog(@"end push ...");
 }
 
+// connect - step 1
+- (void)connectSocket
+{
+    // Establish connection to server.
+    PeerSpec peer;
+    
+    //测试开发环境
+    if (self.devSelect == self.pushMode.selectedCell) {
+        _connectResult = MakeServerConnection(Push_Developer, 2195, 1, &socket, &peer);
+        NSLog(@"MakeServerConnection(): %d", _connectResult);
+    }
+    
+    //生产正式环境
+    if (self.productSelect == self.pushMode.selectedCell) {
+        _connectResult = MakeServerConnection(Push_Production, 2195, 1, &socket, &peer);
+        NSLog(@"MakeServerConnection(): %d", _connectResult);
+    }
+}
+
+// connect - step 2
+- (void)connectSSL
+{
+    // Create new SSL context.
+    _connectResult = SSLNewContext(false, &context);
+    
+    // Set callback functions for SSL context.
+    _connectResult = SSLSetIOFuncs(context, SocketRead, SocketWrite);
+    
+    // Set SSL context connection.
+    _connectResult = SSLSetConnection(context, socket);
+    
+    // Set domain
+    if (self.devSelect == self.pushMode.selectedCell) {
+        _connectResult = SSLSetPeerDomainName(context, Push_Developer, 30);
+    }
+    
+    if (self.productSelect == self.pushMode.selectedCell) {
+        _connectResult = SSLSetPeerDomainName(context,Push_Production, 22);
+    }
+    
+}
+
+// connect - step 3
+- (void)openKeychain
+{
+    // Open keychain.
+    _connectResult = SecKeychainCopyDefault(&keychain);
+}
+
+// conect - step 4
+- (void)configSSLCer
+{
+    // Create certificate.
+    NSData *certificateData = [NSData dataWithContentsOfFile:self.cerPath.stringValue];
+    certificate = SecCertificateCreateWithData(kCFAllocatorDefault, (__bridge CFDataRef)certificateData);
+    
+    // Create identity.
+    _connectResult = SecIdentityCreateWithCertificate(keychain, certificate, &identity);
+    
+    // Set client certificate.
+    CFArrayRef certificates = CFArrayCreate(NULL, (const void **)&identity, 1, NULL);
+    _connectResult = SSLSetCertificate(context, certificates);
+    CFRelease(certificates);
+}
+
 #pragma mark - Custom Methods
 
 - (void)disconnect {
@@ -232,6 +234,7 @@
     if (keychain != NULL) CFRelease(keychain); // Release keychain.
     close((int)socket); // Close connection to server.
     _closeResult = SSLDisposeContext(context); // Delete SSL context.
+    NSLog(@"disconnet success");
 }
 
 -(void)resetConnect{

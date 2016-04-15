@@ -9,6 +9,9 @@
 #import "ViewController.h"
 #import "ioSock.h"
 
+#include <sys/socket.h>
+#include <netdb.h>
+
 #define Push_Developer  "gateway.sandbox.push.apple.com"
 #define Push_Production  "gateway.push.apple.com"
 #define NWSSL_HANDSHAKE_TRY_COUNT 1 << 26
@@ -18,7 +21,7 @@
     NSString *_cerFile;
     NSString *_tokenStr;
     
-    otSocket socket;
+    otSocket _otSocket;
     OSStatus _connectResult;
     OSStatus _closeResult;
     
@@ -26,6 +29,8 @@
     SecKeychainRef keychain;
     SecCertificateRef certificate;
     SecIdentityRef identity;
+    
+    int _socket;
 }
 
 @end
@@ -79,11 +84,25 @@
         return;
     }
     
-    [self connectSocket];
+    NSString *host = nil;
+    NSInteger port = 0;
+    
+    //测试开发环境
+    if (self.devSelect == self.pushMode.selectedCell) {
+        host = @Push_Developer;
+        port = 2195;
+
+    }
+    
+    //生产正式环境
+    if (self.productSelect == self.pushMode.selectedCell) {
+        host = @Push_Production;
+        port = 2195;
+    }
+    
+    [self connectSocket:host port:port];
     
     [self connectSSL];
-    
-    //[self openKeychain];
     
     [self configSSLCer];
     
@@ -159,6 +178,42 @@
     NSLog(@"end push ...");
 }
 
+- (BOOL)connectSocket:(NSString *)hostName port:(NSInteger)portNum
+{
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(struct sockaddr_in));
+    struct hostent *entr = gethostbyname(hostName.UTF8String);
+    if (!entr) {
+        return NO;
+    }
+    
+    struct in_addr host;
+    memcpy(&host, entr->h_addr, sizeof(struct in_addr));
+    addr.sin_addr = host;
+    addr.sin_port = htons((u_short)portNum);
+    addr.sin_family = AF_INET;
+    int conn = connect(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+    if (conn < 0) {
+        return NO;
+    }
+
+    int cntl = fcntl(sock, F_SETFL, O_NONBLOCK);
+    if (cntl < 0) {
+        return NO;
+    }
+
+    int set = 1, sopt = setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
+    if (sopt < 0) {
+        return NO;
+    }
+    _socket = sock;
+    
+    return YES;
+    
+}
+
 // connect - step 1
 - (void)connectSocket
 {
@@ -167,13 +222,13 @@
     
     //测试开发环境
     if (self.devSelect == self.pushMode.selectedCell) {
-        _connectResult = MakeServerConnection(Push_Developer, 2195, 1, &socket, &peer);
+        _connectResult = MakeServerConnection(Push_Developer, 2195, 1, &_otSocket, &peer);
         NSLog(@"MakeServerConnection(): %d", _connectResult);
     }
     
     //生产正式环境
     if (self.productSelect == self.pushMode.selectedCell) {
-        _connectResult = MakeServerConnection(Push_Production, 2195, 1, &socket, &peer);
+        _connectResult = MakeServerConnection(Push_Production, 2195, 1, &_otSocket, &peer);
         NSLog(@"MakeServerConnection(): %d", _connectResult);
     }
 }
@@ -188,7 +243,7 @@
     _connectResult = SSLSetIOFuncs(context, SocketRead, SocketWrite);
     
     // Set SSL context connection.
-    _connectResult = SSLSetConnection(context, socket);
+    _connectResult = SSLSetConnection(context, _socket);
     
     // Set domain
     if (self.devSelect == self.pushMode.selectedCell) {
@@ -232,7 +287,7 @@
     if (identity != NULL) CFRelease(identity); // Release identity.
     if (certificate != NULL) CFRelease(certificate); // Release certificate.
     if (keychain != NULL) CFRelease(keychain); // Release keychain.
-    close((int)socket); // Close connection to server.
+    close((int)_otSocket); // Close connection to server.
     _closeResult = SSLDisposeContext(context); // Delete SSL context.
     NSLog(@"disconnet success");
 }

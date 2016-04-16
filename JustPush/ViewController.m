@@ -239,6 +239,9 @@ OSStatus NWSSLWrite(SSLConnectionRef connection, const void *data, size_t *lengt
         if (setpeer != errSecSuccess) return NO;
     }
     
+    OSStatus setKC = SecKeychainCopyDefault(&keychain);
+    if (setKC != errSecSuccess) return NO;
+    
     _context = contextRef;
     
     return YES;

@@ -9,14 +9,13 @@
 /* Begin PBXBuildFile section */
 		7854616A1CBE589800D7088B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 785461691CBE589800D7088B /* AppDelegate.m */; };
 		7854616D1CBE589800D7088B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7854616C1CBE589800D7088B /* main.m */; };
-		785461701CBE589800D7088B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7854616F1CBE589800D7088B /* ViewController.m */; };
 		785461721CBE589800D7088B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 785461711CBE589800D7088B /* Assets.xcassets */; };
 		785461751CBE589800D7088B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 785461731CBE589800D7088B /* Main.storyboard */; };
 		785461801CBE589800D7088B /* JustPushTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 7854617F1CBE589800D7088B /* JustPushTests.m */; };
 		7854618B1CBE589800D7088B /* JustPushUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 7854618A1CBE589800D7088B /* JustPushUITests.m */; };
-		7854619A1CBF838F00D7088B /* ioSock.c in Sources */ = {isa = PBXBuildFile; fileRef = 785461981CBF838F00D7088B /* ioSock.c */; };
 		7854619C1CBF83E000D7088B /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7854619B1CBF83E000D7088B /* WebKit.framework */; };
 		7854619E1CBF83EA00D7088B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7854619D1CBF83EA00D7088B /* Cocoa.framework */; };
+		785461E01CC2906300D7088B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 785461DF1CC2906300D7088B /* ViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,7 +41,6 @@
 		785461691CBE589800D7088B /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		7854616C1CBE589800D7088B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		7854616E1CBE589800D7088B /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		7854616F1CBE589800D7088B /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		785461711CBE589800D7088B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		785461741CBE589800D7088B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		785461761CBE589800D7088B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -52,10 +50,9 @@
 		785461861CBE589800D7088B /* JustPushUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JustPushUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7854618A1CBE589800D7088B /* JustPushUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JustPushUITests.m; sourceTree = "<group>"; };
 		7854618C1CBE589800D7088B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		785461981CBF838F00D7088B /* ioSock.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ioSock.c; sourceTree = "<group>"; };
-		785461991CBF838F00D7088B /* ioSock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ioSock.h; sourceTree = "<group>"; };
 		7854619B1CBF83E000D7088B /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		7854619D1CBF83EA00D7088B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		785461DF1CC2906300D7088B /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,12 +105,10 @@
 		785461671CBE589800D7088B /* JustPush */ = {
 			isa = PBXGroup;
 			children = (
-				785461981CBF838F00D7088B /* ioSock.c */,
-				785461991CBF838F00D7088B /* ioSock.h */,
 				785461681CBE589800D7088B /* AppDelegate.h */,
 				785461691CBE589800D7088B /* AppDelegate.m */,
 				7854616E1CBE589800D7088B /* ViewController.h */,
-				7854616F1CBE589800D7088B /* ViewController.m */,
+				785461DF1CC2906300D7088B /* ViewController.m */,
 				785461711CBE589800D7088B /* Assets.xcassets */,
 				785461731CBE589800D7088B /* Main.storyboard */,
 				7854616B1CBE589800D7088B /* Supporting Files */,
@@ -279,8 +274,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				785461701CBE589800D7088B /* ViewController.m in Sources */,
-				7854619A1CBF838F00D7088B /* ioSock.c in Sources */,
+				785461E01CC2906300D7088B /* ViewController.m in Sources */,
 				7854616D1CBE589800D7088B /* main.m in Sources */,
 				7854616A1CBE589800D7088B /* AppDelegate.m in Sources */,
 			);
@@ -505,6 +499,7 @@
 				785461911CBE589800D7088B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		785461921CBE589800D7088B /* Build configuration list for PBXNativeTarget "JustPushTests" */ = {
 			isa = XCConfigurationList;
@@ -513,6 +508,7 @@
 				785461941CBE589800D7088B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		785461951CBE589800D7088B /* Build configuration list for PBXNativeTarget "JustPushUITests" */ = {
 			isa = XCConfigurationList;
@@ -521,6 +517,7 @@
 				785461971CBE589800D7088B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
